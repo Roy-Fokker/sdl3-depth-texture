@@ -170,9 +170,11 @@ namespace sdl3
 		if (desc.depth_test)
 		{
 			depth_stencil_state = SDL_GPUDepthStencilState{
-				.compare_op         = SDL_GPU_COMPAREOP_LESS,
-				.enable_depth_test  = true,
-				.enable_depth_write = true,
+				.compare_op          = SDL_GPU_COMPAREOP_LESS,
+				.write_mask          = std::numeric_limits<uint8_t>::max(),
+				.enable_depth_test   = true,
+				.enable_depth_write  = true,
+				.enable_stencil_test = false,
 			};
 		}
 
@@ -516,7 +518,7 @@ namespace sdl3
 		scn.instance_buffer = make_buffer(gpu, SDL_GPU_BUFFERUSAGE_VERTEX, static_cast<uint32_t>(instances.size()), "Instance Buffer"sv);
 
 		auto td = texture_desc{
-			.usage      = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+			.usage      = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
 			.format     = DEPTH_FORMAT,
 			.width      = static_cast<uint32_t>(w),
 			.height     = static_cast<uint32_t>(h),
@@ -583,13 +585,17 @@ namespace sdl3
 		};
 
 		auto depth_target = SDL_GPUDepthStencilTargetInfo{
-			.texture     = scn.depth_texture.get(),
-			.clear_depth = 1.0f,
-			.load_op     = SDL_GPU_LOADOP_CLEAR,
-			.store_op    = SDL_GPU_STOREOP_STORE,
+			.texture          = scn.depth_texture.get(),
+			.clear_depth      = 1.0f,
+			.load_op          = SDL_GPU_LOADOP_CLEAR,
+			.store_op         = SDL_GPU_STOREOP_STORE,
+			.stencil_load_op  = SDL_GPU_LOADOP_CLEAR,
+			.stencil_store_op = SDL_GPU_STOREOP_STORE,
+			.cycle            = true,
+			.clear_stencil    = 0,
 		};
 
-		auto render_pass = SDL_BeginGPURenderPass(cmd_buf, &color_target, 1, &depth_target);
+		auto render_pass = SDL_BeginGPURenderPass(cmd_buf, &color_target, 1, nullptr /*&depth_target*/);
 		{
 			// Vertex and Instance buffer
 			auto vertex_bindings = std::array{
@@ -634,12 +640,20 @@ namespace app
 {
 	auto quit = false;
 
-	void update()
+	void update(float &angle)
 	{
 		auto *key_states = SDL_GetKeyboardState(nullptr);
 
 		if (key_states[SDL_SCANCODE_ESCAPE])
 			quit = true;
+
+		if (key_states[SDL_SCANCODE_A])
+			angle -= 0.5f;
+		if (key_states[SDL_SCANCODE_D])
+			angle += 0.5f;
+
+		if (angle >= 360.0f or angle <= -360.0f)
+			angle = 0.0f;
 	}
 
 	struct vertex
@@ -713,7 +727,7 @@ namespace app
 
 	auto make_cube_instances() -> instance_data
 	{
-		auto cube_1 = glm::translate(glm::mat4(1.0f), glm::vec3{ 1.f, 0.f, 0.f });
+		auto cube_1 = glm::translate(glm::mat4(1.0f), glm::vec3{ 0.f, 0.f, 0.f });
 
 		return {
 			{ cube_1 },
@@ -802,13 +816,19 @@ namespace app
 		return io::read_image_file("data/uv_grid.dds");
 	}
 
-	auto get_projection(uint32_t width, uint32_t height) -> glm::mat4
+	auto get_projection(uint32_t width, uint32_t height, float angle) -> glm::mat4
 	{
 		auto fov          = glm::radians(90.0f);
 		auto aspect_ratio = static_cast<float>(width) / height;
 
+		auto x = std::cosf(angle);
+		auto z = std::sinf(angle);
+
+		x = x * 2.5f;
+		z = z * 2.5f;
+
 		auto projection = glm::perspective(fov, aspect_ratio, 0.f, 100.f);
-		auto view       = glm::lookAt(glm::vec3(0.f, 1.5f, -2.5f),
+		auto view       = glm::lookAt(glm::vec3(x, 1.5, z),
 		                              glm::vec3(0.f, 0.f, 0.f),
 		                              glm::vec3(0.f, 1.f, 0.f));
 
@@ -821,7 +841,9 @@ auto main() -> int
 	constexpr auto width  = 800u;
 	constexpr auto height = 600u;
 
-	auto view_proj      = app::get_projection(width, height);
+	auto angle = 0.f;
+
+	auto view_proj      = app::get_projection(width, height, glm::radians(angle));
 	auto texture        = app::load_texture();
 	auto cube_mesh      = app::make_cube();
 	auto cube_instances = app::make_cube_instances();
@@ -849,7 +871,9 @@ auto main() -> int
 			}
 		}
 		sdl3::draw(ctx, scn, io::as_byte_span(view_proj));
-		app::update();
+		app::update(angle);
+
+		view_proj = app::get_projection(width, height, glm::radians(angle));
 	}
 
 	sdl3::destroy_scene(scn);
