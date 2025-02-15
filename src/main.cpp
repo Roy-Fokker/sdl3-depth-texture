@@ -838,7 +838,7 @@ namespace app
 		x = x * 2.5f;
 		z = z * 2.5f;
 
-		auto projection = glm::perspective(fov, aspect_ratio, 0.f, 100.f);
+		auto projection = glm::perspective(fov, aspect_ratio, 0.1f, 100.f);
 		auto view       = glm::lookAt(glm::vec3(x, 1.5, z),
 		                              glm::vec3(0.f, 0.f, 0.f),
 		                              glm::vec3(0.f, 1.f, 0.f));
