@@ -732,8 +732,16 @@ namespace app
 	{
 		auto cube_1 = glm::translate(glm::mat4(1.0f), glm::vec3{ 0.f, 0.f, 0.f });
 
+		auto cube_2 = glm::translate(glm::mat4(1.0f), glm::vec3{ 0.f, 0.f, -3.f });
+
+		auto cube_3 = glm::translate(glm::mat4(1.0f), glm::vec3{ 0.f, 0.f, 3.f });
+
 		return {
-			{ cube_1 },
+			{
+			  cube_1,
+			  cube_2,
+			  cube_3,
+			},
 		};
 	}
 
