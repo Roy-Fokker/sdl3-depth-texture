@@ -20,6 +20,7 @@ using namespace std::literals;
 constexpr auto IS_DEBUG       = bool{ _DEBUG };
 constexpr auto DEPTH_FORMAT   = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT;
 constexpr auto MAX_ANISOTROPY = float{ 16 };
+constexpr auto MSAA           = SDL_GPU_SAMPLECOUNT_1;
 
 namespace sdl3
 {
@@ -234,6 +235,7 @@ namespace sdl3
 		uint32_t height;
 		uint32_t depth;
 		uint32_t mip_levels;
+		SDL_GPUSampleCount sample_count = MSAA;
 	};
 
 	auto make_texture(SDL_GPUDevice *gpu, const texture_desc &desc, std::string_view name = ""sv) -> gpu_texture_ptr
@@ -248,6 +250,7 @@ namespace sdl3
 			.height               = desc.height,
 			.layer_count_or_depth = desc.depth,
 			.num_levels           = desc.mip_levels,
+			.sample_count         = desc.sample_count,
 		};
 
 		auto texture = SDL_CreateGPUTexture(gpu, &texture_info);
