@@ -595,7 +595,7 @@ namespace sdl3
 			.clear_stencil    = 0,
 		};
 
-		auto render_pass = SDL_BeginGPURenderPass(cmd_buf, &color_target, 1, nullptr /*&depth_target*/);
+		auto render_pass = SDL_BeginGPURenderPass(cmd_buf, &color_target, 1, &depth_target);
 		{
 			// Vertex and Instance buffer
 			auto vertex_bindings = std::array{
