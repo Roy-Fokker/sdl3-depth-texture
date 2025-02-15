@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "sdl3-depth-texture",
+  "version": "1.0",
+  "vcpkg-configuration": {
+    "default-registry": {
+      "kind": "git",
+      "baseline": "bea476a80218a581bcb5318595849520217c825e",
+      "repository": "https://github.com/microsoft/vcpkg"
+    },
+    "registries": [
+      {
+        "kind": "artifact",
+        "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
+        "name": "microsoft"
+      }
+    ],
+    "overlay-ports": [
+      "./external"
+    ]
+  },
+  "dependencies": [
+    "sdl3",
+    "dds-ktx",
+    "glm"
+  ]
+}

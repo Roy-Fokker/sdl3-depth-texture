@@ -1,0 +1,6 @@
+CompileFlags:
+  Remove: ["-std=c++latest"]
+  Add: ["-std=c++23"]
+  CompilationDatabase: "./builds/windows-default"
+Index:
+  StandardLibrary: Yes
